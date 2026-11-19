@@ -36,10 +36,13 @@ for(let i=0;i<8;i++){let xx=W*(.32+i*.046),yy=H*(.76+(i%3)*.035);ctx.strokeStyle
 ctx.restore();
 // small plankton / bubbles
 for(let i=0;i<38;i++){let x=(i*97+t*.013*(i%2?1:-.5))%W,y=(i*67+t*.021)%H;ctx.fillStyle=`rgba(208,245,231,${.14+(i%4)*.06})`;ctx.beginPath();ctx.arc(x,y,1+(i%3)*.5,0,7);ctx.fill()}
-// visible field fish: species only inhabit native depth bands
-let visible=[];fish.forEach(f=>{f.x+=f.vx*.016;if(f.x<-80)f.x=W+80;if(f.x>W+80)f.x=-80;f.z=f.home+Math.sin(t*.0003+f.seed)*Math.min(2,(species.find(s=>s.id===f.id).max-species.find(s=>s.id===f.id).min)*.12);let d=Math.abs(f.z-depth),s=species.find(a=>a.id===f.id);if(d<Math.max(3,H/55)){drawFish(f,t);if(f.draw&&f.draw.x>0&&f.draw.x<W&&f.draw.y>H*.15&&f.draw.y<H*.91)visible.push({f,s,d})}});nearFish=visible.filter(a=>a.d<5).sort((a,b)=>a.d-b.d)[0]||visible.sort((a,b)=>a.d-b.d)[0]||null;
-// diver swims in full open water, world x has no left wall
-let pxp=W*(.46+(worldX%170-85)/850),py=yOf(depth);ctx.save();ctx.translate(pxp,py);ctx.scale(vx<0?-1:1,1);ctx.fillStyle='#f3cbb2';ctx.beginPath();ctx.arc(8,-13,7,0,7);ctx.fill();ctx.fillStyle='#c9e9df';ctx.beginPath();ctx.ellipse(2,0,17,7,-.08,0,7);ctx.fill();ctx.fillStyle='#efb947';ctx.fillRect(-9,-8,8,16);ctx.strokeStyle='#edf7e9';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(9,1);ctx.lineTo(24,6);ctx.moveTo(4,5);ctx.lineTo(-5,13);ctx.stroke();ctx.fillStyle='#d9fbefaa';for(let i=0;i<3;i++){let by=-25-((t*.02+i*12)%30);ctx.beginPath();ctx.arc(-12,by,2+i*.5,0,7);ctx.fill()}ctx.restore();
+// Fish stay at their species' actual habitat depths, so the whole depth column is visible.
+// The observation control only recognizes a fish that is on screen and close to the diver.
+const pxp=W*(.46+(worldX%170-85)/850),py=yOf(depth);let visible=[];
+fish.forEach(f=>{f.x+=f.vx*.016;if(f.x<-80)f.x=W+80;if(f.x>W+80)f.x=-80;const s=species.find(a=>a.id===f.id);f.z=f.home+Math.sin(t*.0003+f.seed)*Math.min(2,(s.max-s.min)*.12);drawFish(f,t);if(f.draw&&f.draw.x+f.draw.r>0&&f.draw.x-f.draw.r<W&&f.draw.y>H*.13&&f.draw.y<H*.92){const dist=Math.hypot(f.draw.x-pxp,f.draw.y-py);if(dist<Math.min(250,H*.42))visible.push({f,s,dist})}});
+nearFish=visible.sort((a,b)=>a.dist-b.dist)[0]||null;
+// diver swims in full open water; the left edge is not a collision boundary
+ctx.save();ctx.translate(pxp,py);ctx.scale(vx<0?-1:1,1);ctx.fillStyle='#f3cbb2';ctx.beginPath();ctx.arc(8,-13,7,0,7);ctx.fill();ctx.fillStyle='#c9e9df';ctx.beginPath();ctx.ellipse(2,0,17,7,-.08,0,7);ctx.fill();ctx.fillStyle='#efb947';ctx.fillRect(-9,-8,8,16);ctx.strokeStyle='#edf7e9';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(9,1);ctx.lineTo(24,6);ctx.moveTo(4,5);ctx.lineTo(-5,13);ctx.stroke();ctx.fillStyle='#d9fbefaa';for(let i=0;i<3;i++){let by=-25-((t*.02+i*12)%30);ctx.beginPath();ctx.arc(-12,by,2+i*.5,0,7);ctx.fill()}ctx.restore();
 // gradient vignette and depth haze
 let haze=ctx.createLinearGradient(0,0,0,H);haze.addColorStop(0,`rgba(12,52,79,${depth*.004})`);haze.addColorStop(1,`rgba(2,13,35,${depth*.012})`);ctx.fillStyle=haze;ctx.fillRect(0,0,W,H);
 }
