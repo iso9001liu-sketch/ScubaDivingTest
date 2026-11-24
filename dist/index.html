@@ -38,7 +38,9 @@ ctx.restore();
 for(let i=0;i<38;i++){let x=(i*97+t*.013*(i%2?1:-.5))%W,y=(i*67+t*.021)%H;ctx.fillStyle=`rgba(208,245,231,${.14+(i%4)*.06})`;ctx.beginPath();ctx.arc(x,y,1+(i%3)*.5,0,7);ctx.fill()}
 // Fish stay at their species' actual habitat depths, so the whole depth column is visible.
 // The observation control only recognizes a fish that is on screen and close to the diver.
-const pxp=W*(.46+(worldX%170-85)/850),py=yOf(depth);let visible=[];
+// Keep the diver anchored on screen while the reef and fish scroll continuously.
+// Using worldX modulo here made the diver snap backward every 170m.
+const pxp=W*.46,py=yOf(depth);let visible=[];
 fish.forEach(f=>{f.x+=f.vx*.016;if(f.x<-80)f.x=W+80;if(f.x>W+80)f.x=-80;const s=species.find(a=>a.id===f.id);f.z=f.home+Math.sin(t*.0003+f.seed)*Math.min(2,(s.max-s.min)*.12);drawFish(f,t);if(f.draw&&f.draw.x+f.draw.r>0&&f.draw.x-f.draw.r<W&&f.draw.y>H*.13&&f.draw.y<H*.92){const dist=Math.hypot(f.draw.x-pxp,f.draw.y-py);if(dist<Math.min(250,H*.42))visible.push({f,s,dist})}});
 nearFish=visible.sort((a,b)=>a.dist-b.dist)[0]||null;
 // diver swims in full open water; the left edge is not a collision boundary
